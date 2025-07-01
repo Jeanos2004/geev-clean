@@ -5,8 +5,9 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Platform,
-  KeyboardAvoidingView,
+  Image,
+  TextInput,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -14,14 +15,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useItems } from '../../contexts/ItemsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Item, CategoryType, ItemCondition, CreateItemData } from '../../types/item';
-import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
-import { CATEGORIES, ITEM_CONDITIONS } from '../../utils/constants';
 
 type AddItemRouteProp = RouteProp<{ AddItem: { editItem?: Item } }, 'AddItem'>;
 
+const { width } = Dimensions.get('window');
+
 /**
- * Écran d'ajout/modification d'objet avec formulaire complet
+ * Écran d'ajout d'objet Geev - Design moderne et inspirant
+ * Interface simplifiée pour encourager le don
  */
 const AddItemScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -40,8 +41,8 @@ const AddItemScreen: React.FC = () => {
       latitude: 48.8566,
       longitude: 2.3522,
       address: '',
-      city: '',
-      zipCode: ''
+      city: 'Paris',
+      zipCode: '75001'
     },
     dimensions: undefined,
     pickup: {
@@ -54,326 +55,362 @@ const AddItemScreen: React.FC = () => {
     isUrgent: false,
   });
   
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const editItem = route.params?.editItem;
   const isEditMode = !!editItem;
 
-  // Initialiser le formulaire pour l'édition
-  useEffect(() => {
-    if (editItem) {
-      setFormData({
-        title: editItem.title,
-        description: editItem.description,
-        categoryId: editItem.categoryId,
-        condition: editItem.condition,
-        images: editItem.images,
-        location: editItem.location,
-        coordinates: editItem.coordinates,
-      });
-    }
-  }, [editItem]);
+  // Catégories Geev avec couleurs
+  const categories = [
+    { id: CategoryType.FURNITURE, label: 'Meubles', icon: 'bed-outline', color: '#3B82F6' },
+    { id: CategoryType.ELECTRONICS, label: 'Électronique', icon: 'phone-portrait-outline', color: '#8B5CF6' },
+    { id: CategoryType.CLOTHING, label: 'Mode', icon: 'shirt-outline', color: '#EC4899' },
+    { id: CategoryType.BOOKS, label: 'Livres', icon: 'book-outline', color: '#F59E0B' },
+    { id: CategoryType.SPORTS, label: 'Sport', icon: 'football-outline', color: '#EF4444' },
+    { id: CategoryType.TOYS_GAMES, label: 'Jouets', icon: 'game-controller-outline', color: '#10B981' },
+    { id: CategoryType.OTHER, label: 'Autre', icon: 'ellipsis-horizontal', color: '#6B7280' },
+  ];
+
+  // États des objets
+  const conditions = [
+    { id: ItemCondition.NEW, label: 'Neuf', icon: 'sparkles', color: '#22C55E' },
+    { id: ItemCondition.LIKE_NEW, label: 'Comme neuf', icon: 'star', color: '#3B82F6' },
+    { id: ItemCondition.GOOD, label: 'Bon état', icon: 'checkmark-circle', color: '#F59E0B' },
+    { id: ItemCondition.FAIR, label: 'État correct', icon: 'remove-circle', color: '#EF4444' },
+    { id: ItemCondition.POOR, label: 'Usé', icon: 'warning', color: '#6B7280' },
+  ];
 
   const updateFormData = (field: keyof CreateItemData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Supprimer l'erreur si elle existe
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = 'Le titre est obligatoire';
-    } else if (formData.title.length < 3) {
-      newErrors.title = 'Le titre doit contenir au moins 3 caractères';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'La description est obligatoire';
-    } else if (formData.description.length < 10) {
-      newErrors.description = 'La description doit contenir au moins 10 caractères';
-    }
-
-    if (!formData.categoryId) {
-      newErrors.categoryId = 'Veuillez sélectionner une catégorie';
-    }
-
-    if (!formData.location.trim()) {
-      newErrors.location = 'L\'emplacement est obligatoire';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleAddPhotos = () => {
     Alert.alert(
       'Ajouter des photos',
-      'Fonctionnalité en cours de développement.\nPour le moment, des photos par défaut seront utilisées.',
+      'Ajoutez jusqu\'à 5 photos pour attirer plus de Geevers !',
       [
-        { text: 'OK', onPress: () => {
-          // Ajouter des photos par défaut pour la démonstration
-          const defaultImages = [
-            'https://via.placeholder.com/400x300/059669/white?text=Photo+1',
-            'https://via.placeholder.com/400x300/0891b2/white?text=Photo+2'
-          ];
-          updateFormData('images', defaultImages);
-        }}
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Ajouter', 
+          onPress: () => {
+            // Simulation d'ajout de photos
+            const newImages = [
+              'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
+              'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400'
+            ];
+            updateFormData('images', newImages);
+          }
+        }
       ]
     );
   };
 
-  const handleGetLocation = () => {
-    Alert.alert(
-      'Géolocalisation',
-      'Fonctionnalité en cours de développement.\nPour le moment, veuillez saisir manuellement votre adresse.',
-      [{ text: 'OK' }]
-    );
-  };
-
   const handleSubmit = async () => {
-    if (!validateForm()) return;
-    if (!user) return;
+    if (!formData.title.trim()) {
+      Alert.alert('Attention', 'Veuillez saisir un titre pour votre objet');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      Alert.alert('Attention', 'Veuillez ajouter une description');
+      return;
+    }
 
     setIsLoading(true);
     try {
+      const itemData = {
+        ...formData,
+        location: {
+          ...formData.location,
+          address: formData.location.address || 'Paris, France'
+        }
+      };
+
       if (isEditMode && editItem) {
-        await updateItem(editItem.id, formData);
-        Alert.alert('Succès', 'Objet modifié avec succès !', [
+        await updateItem(editItem.id, itemData);
+        Alert.alert('Succès! 🎉', 'Votre objet a été modifié avec succès !', [
           { text: 'OK', onPress: () => navigation.goBack() }
         ]);
       } else {
-        await addItem(formData);
-        Alert.alert('Succès', 'Objet ajouté avec succès !', [
-          { text: 'OK', onPress: () => navigation.goBack() }
+        await createItem(itemData);
+        Alert.alert('Félicitations! 🎉', 'Votre objet a été publié avec succès !\n\nVous venez de faire un geste pour la planète! 🌍', [
+          { text: 'Super!', onPress: () => navigation.goBack() }
         ]);
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sauvegarder l\'objet');
+      Alert.alert('Oups!', 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const selectedCategory = CATEGORIES.find(cat => cat.id === formData.categoryId);
-  const selectedCondition = CONDITIONS.find(cond => cond.id === formData.condition);
+  const selectedCategory = categories.find(cat => cat.id === formData.category);
+  const selectedCondition = conditions.find(cond => cond.id === formData.condition);
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="p-2 rounded-full bg-gray-100"
-        >
-          <Ionicons name="close" size={24} color="#374151" />
-        </TouchableOpacity>
-        
-        <Text className="text-lg font-semibold text-gray-900">
-          {isEditMode ? 'Modifier l\'objet' : 'Ajouter un objet'}
-        </Text>
-        
-        <View className="w-10" />
+      {/* Header Geev */}
+      <View className="bg-gradient-to-r from-green-500 to-green-600 px-4 py-4">
+        <View className="flex-row justify-between items-center">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="w-10 h-10 bg-white/20 rounded-full items-center justify-center"
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          
+          <View className="flex-1 items-center">
+            <Text className="text-xl font-bold text-white">
+              {isEditMode ? 'Modifier mon objet' : 'Donner un objet'}
+            </Text>
+            <Text className="text-green-100 text-sm">
+              Faites un geste pour la planète ! 🌍
+            </Text>
+          </View>
+          
+          <View className="w-10" />
+        </View>
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        <ScrollView className="flex-1 p-4">
-          {/* Section photos */}
-          <View className="mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-3">
-              Photos
-            </Text>
-            
-            {formData.images.length > 0 ? (
-              <View className="mb-3">
-                <Text className="text-green-600 mb-2">✓ {formData.images.length} photo(s) ajoutée(s)</Text>
-                <TouchableOpacity
-                  onPress={() => updateFormData('images', [])}
-                  className="bg-red-100 rounded-lg p-3"
-                >
-                  <Text className="text-red-700 text-center">Supprimer les photos</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Section motivation */}
+        <View className="bg-gradient-to-br from-blue-50 to-green-50 p-6 mx-4 my-4 rounded-xl">
+          <View className="flex-row items-center mb-3">
+            <View className="w-12 h-12 bg-green-500 rounded-full items-center justify-center mr-3">
+              <Ionicons name="heart" size={24} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-gray-800">
+                Donnez, partagez, rendez heureux !
+              </Text>
+              <Text className="text-gray-600 text-sm">
+                La plupart des objets trouvent preneur en moins de 2h
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Section photos */}
+        <View className="px-4 mb-6">
+          <Text className="text-lg font-bold text-gray-800 mb-3">
+            📸 Photos de votre objet
+          </Text>
+          
+          {formData.images.length > 0 ? (
+            <View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
+                {formData.images.map((image, index) => (
+                  <View key={index} className="mr-3">
+                    <Image 
+                      source={{ uri: image }} 
+                      className="w-24 h-24 rounded-xl"
+                      resizeMode="cover"
+                    />
+                  </View>
+                ))}
+              </ScrollView>
               <TouchableOpacity
                 onPress={handleAddPhotos}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-6 justify-center items-center bg-gray-50 mb-3"
+                className="bg-green-500 rounded-xl p-3 flex-row items-center justify-center"
               >
-                <Ionicons name="camera-outline" size={48} color="#6B7280" />
-                <Text className="text-gray-600 mt-2 text-center">
-                  Appuyez pour ajouter des photos
-                </Text>
-                <Text className="text-gray-500 text-sm mt-1">
-                  (Fonctionnalité en développement)
-                </Text>
+                <Ionicons name="camera-outline" size={20} color="white" />
+                <Text className="text-white font-semibold ml-2">Modifier les photos</Text>
               </TouchableOpacity>
-            )}
-          </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={handleAddPhotos}
+              className="border-2 border-dashed border-green-300 rounded-xl p-8 items-center"
+            >
+              <View className="w-16 h-16 bg-green-100 rounded-full items-center justify-center mb-3">
+                <Ionicons name="camera" size={32} color="#22C55E" />
+              </View>
+              <Text className="text-green-600 font-semibold text-lg">Ajouter des photos</Text>
+              <Text className="text-gray-500 text-center mt-1">
+                Des photos de qualité attirent plus de Geevers !
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
+        {/* Section informations */}
+        <View className="px-4 mb-6">
+          <Text className="text-lg font-bold text-gray-800 mb-4">
+            📝 Décrivez votre objet
+          </Text>
+          
           {/* Titre */}
           <View className="mb-4">
-            <Input
-              label="Titre de l'annonce *"
-              placeholder="Ex: iPhone 12, Canapé bleu, Vélo de ville..."
+            <Text className="text-gray-700 font-medium mb-2">Titre*</Text>
+            <TextInput
+              className="bg-gray-50 rounded-xl p-4 text-gray-800 text-base"
+              placeholder="Ex: Canapé IKEA en bon état"
               value={formData.title}
               onChangeText={(text) => updateFormData('title', text)}
-              error={errors.title}
-              maxLength={100}
+              maxLength={60}
             />
+            <Text className="text-gray-400 text-xs mt-1 text-right">
+              {formData.title.length}/60
+            </Text>
           </View>
 
           {/* Description */}
           <View className="mb-4">
-            <Input
-              label="Description *"
-              placeholder="Décrivez votre objet : état, caractéristiques, raison du don..."
+            <Text className="text-gray-700 font-medium mb-2">Description*</Text>
+            <TextInput
+              className="bg-gray-50 rounded-xl p-4 text-gray-800 text-base"
+              placeholder="Décrivez votre objet, son état, ses caractéristiques..."
               value={formData.description}
               onChangeText={(text) => updateFormData('description', text)}
-              error={errors.description}
               multiline
               numberOfLines={4}
+              textAlignVertical="top"
               maxLength={500}
             />
-          </View>
-
-          {/* Catégorie */}
-          <View className="mb-4">
-            <Text className="text-base font-medium text-gray-900 mb-2">
-              Catégorie *
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
-              {CATEGORIES.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  onPress={() => updateFormData('categoryId', category.id)}
-                  className={`mr-3 px-4 py-3 rounded-lg border-2 ${
-                    formData.categoryId === category.id
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  <Text className="text-2xl mb-1">{category.icon}</Text>
-                  <Text
-                    className={`text-sm font-medium ${
-                      formData.categoryId === category.id ? 'text-green-700' : 'text-gray-700'
-                    }`}
-                  >
-                    {category.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-            {errors.categoryId && (
-              <Text className="text-red-500 text-sm mt-1">{errors.categoryId}</Text>
-            )}
-          </View>
-
-          {/* État */}
-          <View className="mb-4">
-            <Text className="text-base font-medium text-gray-900 mb-2">
-              État de l'objet *
-            </Text>
-            <View className="flex-row flex-wrap">
-              {CONDITIONS.map((condition) => (
-                <TouchableOpacity
-                  key={condition.id}
-                  onPress={() => updateFormData('condition', condition.id)}
-                  className={`mr-3 mb-2 px-4 py-2 rounded-full border-2 ${
-                    formData.condition === condition.id
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${
-                      formData.condition === condition.id ? 'text-green-700' : 'text-gray-700'
-                    }`}
-                  >
-                    {condition.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Localisation */}
-          <View className="mb-6">
-            <Text className="text-base font-medium text-gray-900 mb-2">
-              Localisation *
-            </Text>
-            <View className="flex-row space-x-3">
-              <View className="flex-1">
-                <Input
-                  placeholder="Adresse, ville..."
-                  value={formData.location}
-                  onChangeText={(text) => updateFormData('location', text)}
-                  error={errors.location}
-                />
-              </View>
-              <TouchableOpacity
-                onPress={handleGetLocation}
-                className="px-4 py-3 bg-green-500 rounded-lg justify-center items-center"
-              >
-                <Ionicons name="location" size={20} color="white" />
-              </TouchableOpacity>
-            </View>
-            <Text className="text-gray-500 text-sm mt-1">
-              Ex: 75001 Paris, Marseille, Lyon...
+            <Text className="text-gray-400 text-xs mt-1 text-right">
+              {formData.description.length}/500
             </Text>
           </View>
-
-          {/* Résumé */}
-          {formData.title && (
-            <View className="bg-gray-50 rounded-lg p-4 mb-6">
-              <Text className="text-base font-semibold text-gray-900 mb-2">
-                Aperçu de votre annonce
-              </Text>
-              <View className="flex-row">
-                <View className="w-16 h-16 bg-gray-200 rounded-lg mr-3 justify-center items-center">
-                  <Ionicons name="image-outline" size={24} color="#6B7280" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-medium text-gray-900">{formData.title}</Text>
-                  {selectedCategory && (
-                    <Text className="text-sm text-gray-600 mt-1">
-                      {selectedCategory.name}
-                    </Text>
-                  )}
-                  {selectedCondition && (
-                    <Text className="text-sm text-gray-600">
-                      {selectedCondition.name}
-                    </Text>
-                  )}
-                  {formData.location && (
-                    <Text className="text-sm text-gray-500">
-                      📍 {formData.location}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Bouton de soumission */}
-        <View className="p-4 border-t border-gray-200">
-          <Button
-            title={isEditMode ? 'Modifier l\'objet' : 'Publier l\'objet'}
-            onPress={handleSubmit}
-            loading={isLoading}
-            disabled={isLoading}
-            variant="primary"
-            icon={<Ionicons name="checkmark" size={20} color="white" />}
-          />
         </View>
-      </KeyboardAvoidingView>
+
+        {/* Section catégorie */}
+        <View className="px-4 mb-6">
+          <Text className="text-lg font-bold text-gray-800 mb-4">
+            🏷️ Catégorie
+          </Text>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                onPress={() => updateFormData('category', category.id)}
+                className={`items-center mr-4 px-4 py-3 rounded-xl min-w-[90px] ${
+                  selectedCategory?.id === category.id 
+                    ? 'shadow-lg' 
+                    : ''
+                }`}
+                style={{
+                  backgroundColor: selectedCategory?.id === category.id ? category.color : '#F3F4F6'
+                }}
+              >
+                <View className={`w-12 h-12 rounded-full items-center justify-center mb-2 ${
+                  selectedCategory?.id === category.id ? 'bg-white/20' : 'bg-white'
+                }`}>
+                  <Ionicons 
+                    name={category.icon as any} 
+                    size={24} 
+                    color={selectedCategory?.id === category.id ? 'white' : category.color} 
+                  />
+                </View>
+                <Text className={`text-xs font-medium text-center ${
+                  selectedCategory?.id === category.id ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {category.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Section état */}
+        <View className="px-4 mb-6">
+          <Text className="text-lg font-bold text-gray-800 mb-4">
+            ⭐ État de l'objet
+          </Text>
+          
+          <View className="flex-row flex-wrap">
+            {conditions.map((condition) => (
+              <TouchableOpacity
+                key={condition.id}
+                onPress={() => updateFormData('condition', condition.id)}
+                className={`flex-row items-center mr-3 mb-3 px-4 py-3 rounded-xl ${
+                  selectedCondition?.id === condition.id 
+                    ? 'shadow-lg' 
+                    : 'bg-gray-100'
+                }`}
+                style={{
+                  backgroundColor: selectedCondition?.id === condition.id ? condition.color : '#F3F4F6'
+                }}
+              >
+                <Ionicons 
+                  name={condition.icon as any} 
+                  size={20} 
+                  color={selectedCondition?.id === condition.id ? 'white' : condition.color} 
+                />
+                <Text className={`ml-2 font-medium ${
+                  selectedCondition?.id === condition.id ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {condition.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Section localisation */}
+        <View className="px-4 mb-6">
+          <Text className="text-lg font-bold text-gray-800 mb-4">
+            📍 Localisation
+          </Text>
+          
+          <View className="bg-blue-50 rounded-xl p-4 flex-row items-center">
+            <Ionicons name="location" size={24} color="#3B82F6" />
+            <View className="flex-1 ml-3">
+              <Text className="text-blue-800 font-medium">Paris, France</Text>
+              <Text className="text-blue-600 text-sm">
+                Localisation automatique activée
+              </Text>
+            </View>
+            <TouchableOpacity className="bg-blue-500 rounded-lg px-3 py-2">
+              <Text className="text-white text-sm font-medium">Modifier</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Message encourageant */}
+        <View className="bg-gradient-to-r from-green-500 to-blue-500 mx-4 rounded-xl p-6 mb-6">
+          <View className="items-center">
+            <Ionicons name="earth" size={48} color="white" />
+            <Text className="text-white font-bold text-lg text-center mt-3">
+              Merci pour votre geste !
+            </Text>
+            <Text className="text-green-100 text-center mt-2 text-sm">
+              En donnant, vous participez à l'économie circulaire et aidez la planète 🌱
+            </Text>
+          </View>
+        </View>
+
+        {/* Bouton de publication */}
+        <View className="px-4 pb-8">
+          <TouchableOpacity
+            onPress={handleSubmit}
+            disabled={isLoading || !formData.title.trim() || !formData.description.trim()}
+            className={`rounded-xl p-4 flex-row items-center justify-center ${
+              isLoading || !formData.title.trim() || !formData.description.trim()
+                ? 'bg-gray-300' 
+                : 'bg-green-500 shadow-lg'
+            }`}
+          >
+            {isLoading ? (
+              <Text className="text-white font-bold text-lg">Publication en cours...</Text>
+            ) : (
+              <>
+                <Ionicons name="checkmark-circle" size={24} color="white" />
+                <Text className="text-white font-bold text-lg ml-2">
+                  {isEditMode ? 'Modifier l\'objet' : 'Publier mon don'}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+          
+          {(!formData.title.trim() || !formData.description.trim()) && (
+            <Text className="text-gray-500 text-center mt-3 text-sm">
+              Veuillez remplir le titre et la description
+            </Text>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

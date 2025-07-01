@@ -1,223 +1,261 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  ScrollView, 
+  TextInput,
+  Image,
+  Dimensions,
+  Modal
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useItems } from '../../contexts/ItemsContext';
-import { useAuth } from '../../contexts/AuthContext';
-import Button from '../../components/common/Button';
+import { CategoryType, Item } from '../../types/item';
+
+const { width, height } = Dimensions.get('window');
 
 /**
- * Écran de carte avec les objets géolocalisés
+ * Écran de carte Geev - Interface moderne de géolocalisation
+ * Affichage des objets sur une carte interactive
  */
 const MapScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { user } = useAuth();
-  const { items, isLoading } = useItems();
+  const { items } = useItems();
   
-  const [selectedRadius, setSelectedRadius] = useState(10); // 10km par défaut
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [selectedRadius, setSelectedRadius] = useState(5);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  // Simuler des objets proches
-  const nearbyItems = items.slice(0, 5);
+  // Simuler des objets géolocalisés avec distance
+  const nearbyItems = items.slice(0, 8).map((item, index) => ({
+    ...item,
+    distance: (item as any).distance || Math.random() * selectedRadius,
+  }));
 
-  const handleLocationPermission = () => {
-    Alert.alert(
-      'Géolocalisation',
-      'Pour afficher la carte interactive, nous avons besoin d\'accéder à votre position. Fonctionnalité en cours de développement.',
-      [
-        { text: 'Plus tard', style: 'cancel' },
-        { text: 'Activer', onPress: () => {
-          Alert.alert('Activé', 'Géolocalisation simulée activée !');
-        }}
-      ]
-    );
-  };
-
-  const handleViewItem = (itemId: string) => {
-    navigation.navigate('ItemDetail' as never, { itemId } as never);
+  const formatDistance = (distance?: number) => {
+    if (!distance) return '< 1km';
+    return distance < 1 
+      ? `${Math.round(distance * 1000)}m`
+      : `${distance.toFixed(1)}km`;
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
-      <View className="p-4 border-b border-gray-200">
-        <View className="flex-row justify-between items-center mb-4">
-          <Text className="text-2xl font-bold text-gray-900">
-            🗺️ Carte des objets
-          </Text>
+      {/* Header Geev */}
+      <View className="bg-gradient-to-r from-green-500 to-green-600 px-4 py-4">
+        <View className="flex-row items-center mb-3">
           <TouchableOpacity
-            onPress={handleLocationPermission}
-            className="p-2 rounded-full bg-green-100"
+            onPress={() => navigation.goBack()}
+            className="w-10 h-10 bg-white/20 rounded-full items-center justify-center mr-3"
           >
-            <Ionicons name="location" size={24} color="#059669" />
+            <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
-        </View>
-
-        {/* Sélecteur de rayon */}
-        <View className="mb-4">
-          <Text className="text-sm font-medium text-gray-700 mb-2">
-            Rayon de recherche
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[5, 10, 20, 50].map((radius) => (
-              <TouchableOpacity
-                key={radius}
-                onPress={() => setSelectedRadius(radius)}
-                className={`mr-3 px-4 py-2 rounded-full border-2 ${
-                  selectedRadius === radius
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-200 bg-white'
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    selectedRadius === radius ? 'text-green-700' : 'text-gray-700'
-                  }`}
-                >
-                  {radius} km
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Toggle vue */}
-        <View className="flex-row bg-gray-100 rounded-lg p-1">
-          <TouchableOpacity
-            onPress={() => setViewMode('list')}
-            className={`flex-1 py-2 rounded-md ${
-              viewMode === 'list' ? 'bg-white shadow-sm' : ''
-            }`}
-          >
-            <Text
-              className={`text-center text-sm font-medium ${
-                viewMode === 'list' ? 'text-gray-900' : 'text-gray-600'
-              }`}
-            >
-              📋 Liste
+          
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-white">Carte des objets</Text>
+            <Text className="text-green-100 text-sm">
+              {nearbyItems.length} objets dans un rayon de {selectedRadius}km
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setViewMode('map')}
-            className={`flex-1 py-2 rounded-md ${
-              viewMode === 'map' ? 'bg-white shadow-sm' : ''
-            }`}
-          >
-            <Text
-              className={`text-center text-sm font-medium ${
-                viewMode === 'map' ? 'text-gray-900' : 'text-gray-600'
-              }`}
-            >
-              🗺️ Carte
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Contenu principal */}
-      <View className="flex-1">
-        {viewMode === 'map' ? (
-          // Vue carte (temporaire)
-          <View className="flex-1 justify-center items-center bg-gray-50 m-4 rounded-lg border-2 border-dashed border-gray-300">
-            <Ionicons name="map" size={64} color="#9CA3AF" />
-            <Text className="text-lg font-semibold text-gray-600 mt-4 mb-2">
-              Carte interactive
-            </Text>
-            <Text className="text-gray-500 text-center px-8 mb-4">
-              La carte interactive avec les objets géolocalisés sera développée dans les prochaines étapes.
-            </Text>
-            <Button
-              title="Activer la géolocalisation"
-              onPress={handleLocationPermission}
-              variant="outline"
-              icon={<Ionicons name="location-outline" size={20} color="#059669" />}
-            />
           </View>
-        ) : (
-          // Vue liste
-          <ScrollView className="flex-1 p-4">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">
-              Objets proches de vous ({nearbyItems.length})
-            </Text>
 
-            {nearbyItems.length === 0 ? (
-              <View className="flex-1 justify-center items-center py-12">
-                <Ionicons name="location-outline" size={48} color="#9CA3AF" />
-                <Text className="text-gray-500 text-center mt-4">
-                  Aucun objet trouvé dans un rayon de {selectedRadius} km
+          <TouchableOpacity className="w-10 h-10 bg-white/20 rounded-full items-center justify-center">
+            <Ionicons name="options-outline" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Barre de recherche */}
+        <View className="flex-row items-center bg-white rounded-xl px-4 py-3">
+          <Ionicons name="search-outline" size={20} color="#6B7280" />
+          <TextInput
+            className="flex-1 ml-3 text-base text-gray-800"
+            placeholder="Rechercher sur la carte..."
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+      </View>
+
+      {/* Rayon de recherche */}
+      <View className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {[1, 2, 5, 10, 20].map((radius) => (
+            <TouchableOpacity
+              key={radius}
+              onPress={() => setSelectedRadius(radius)}
+              className={`mr-3 px-4 py-2 rounded-full ${
+                selectedRadius === radius ? 'bg-green-500' : 'bg-white border border-gray-300'
+              }`}
+            >
+              <Text className={`text-sm font-medium ${
+                selectedRadius === radius ? 'text-white' : 'text-gray-700'
+              }`}>
+                {radius}km
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Zone de carte simulée */}
+      <View className="flex-1 relative">
+        <View className="flex-1 bg-gradient-to-br from-green-50 to-blue-50 relative">
+          {/* Grille de carte */}
+          <View className="absolute inset-0">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <View
+                key={i}
+                className="absolute border border-gray-200"
+                style={{
+                  left: (i % 5) * (width / 5),
+                  top: Math.floor(i / 5) * (height / 8),
+                  width: width / 5,
+                  height: height / 8,
+                }}
+              />
+            ))}
+          </View>
+
+          {/* Position utilisateur */}
+          <View
+            className="absolute w-4 h-4 bg-blue-500 rounded-full border-2 border-white"
+            style={{ left: width / 2 - 8, top: height / 3 }}
+          >
+            <View className="absolute -inset-2 bg-blue-300 rounded-full opacity-30" />
+          </View>
+
+          {/* Pins des objets */}
+          {nearbyItems.map((item, index) => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => setSelectedItem(item)}
+              className="absolute"
+              style={{
+                left: width / 2 + (index % 3 - 1) * 80 + (Math.random() - 0.5) * 100,
+                top: height / 3 + Math.floor(index / 3) * 60 + (Math.random() - 0.5) * 80,
+              }}
+            >
+              <View className="items-center">
+                <View className="w-8 h-8 bg-green-500 rounded-full border-2 border-white items-center justify-center shadow-lg">
+                  <Text className="text-white text-xs font-bold">
+                    {item.title.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View className="w-0 h-0 border-l-2 border-r-2 border-t-4 border-l-transparent border-r-transparent border-t-green-500" />
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          {/* Zone de recherche circulaire */}
+          <View
+            className="absolute border-2 border-green-400 border-dashed rounded-full opacity-30"
+            style={{
+              left: width / 2 - (selectedRadius * 20),
+              top: height / 3 - (selectedRadius * 20),
+              width: selectedRadius * 40,
+              height: selectedRadius * 40,
+            }}
+          />
+        </View>
+
+        {/* Contrôles */}
+        <View className="absolute right-4 bottom-32 bg-white rounded-xl shadow-lg">
+          <TouchableOpacity className="p-3 border-b border-gray-200">
+            <Ionicons name="add" size={24} color="#22C55E" />
+          </TouchableOpacity>
+          <TouchableOpacity className="p-3">
+            <Ionicons name="remove" size={24} color="#22C55E" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity className="absolute right-4 bottom-16 w-12 h-12 bg-white rounded-full items-center justify-center shadow-lg">
+          <Ionicons name="locate" size={24} color="#22C55E" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Liste d'objets */}
+      <View className="bg-white border-t border-gray-200" style={{ height: 110 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 py-3">
+          {nearbyItems.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => setSelectedItem(item)}
+              className="bg-white rounded-xl mr-3 mb-3 border border-gray-200 shadow-sm"
+              style={{ width: 150, height: 100 }}
+            >
+              <Image 
+                source={{ uri: item.images?.[0] || 'https://via.placeholder.com/140x80' }} 
+                className="w-full h-12 rounded-t-xl"
+                resizeMode="cover"
+              />
+              <View className="p-2">
+                <Text className="font-semibold text-gray-800 text-xs" numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text className="text-green-600 text-xs">
+                  {formatDistance((item as any).distance)}
                 </Text>
               </View>
-            ) : (
-              <View className="space-y-4">
-                {nearbyItems.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    onPress={() => handleViewItem(item.id)}
-                    className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
-                  >
-                    <View className="flex-row justify-between items-start mb-2">
-                      <Text className="text-lg font-semibold text-gray-900 flex-1 mr-3">
-                        {item.title}
-                      </Text>
-                      <View className="bg-green-100 rounded-full px-2 py-1">
-                        <Text className="text-green-800 text-xs font-medium">
-                          Gratuit
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View className="flex-row items-center mb-2">
-                      <Ionicons name="location-outline" size={16} color="#6B7280" />
-                      <Text className="text-gray-600 text-sm mt-1">
-                        {item.distance ? `${item.distance.toFixed(1)} km` : 'Distance inconnue'} • {item.location.city}
-                      </Text>
-                    </View>
-
-                    <Text className="text-gray-700 text-sm mb-3" numberOfLines={2}>
-                      {item.description}
-                    </Text>
-
-                    <View className="flex-row justify-between items-center">
-                      <View className="flex-row items-center">
-                        <Text className="text-sm text-gray-500">
-                          {item.categoryName}
-                        </Text>
-                        <View className="w-1 h-1 bg-gray-400 rounded-full mx-2" />
-                        <Text className="text-sm text-gray-500">
-                          {item.condition === 'new' ? 'Neuf' :
-                           item.condition === 'very_good' ? 'Très bon' :
-                           item.condition === 'good' ? 'Bon état' :
-                           item.condition === 'fair' ? 'Correct' : 'À réparer'}
-                        </Text>
-                      </View>
-                      
-                      <View className="flex-row items-center">
-                        <Ionicons name="eye-outline" size={16} color="#6B7280" />
-                        <Text className="text-gray-500 text-sm ml-1">
-                          {item.viewCount}
-                        </Text>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {/* Section conseils */}
-            <View className="bg-blue-50 rounded-lg p-4 mt-6">
-              <Text className="text-blue-900 font-semibold mb-2">
-                💡 Conseils pour trouver des objets
-              </Text>
-              <Text className="text-blue-800 text-sm leading-5">
-                • Élargissez votre rayon de recherche pour plus de résultats{'\n'}
-                • Activez les notifications pour être alerté des nouveaux objets{'\n'}
-                • Contactez rapidement les donneurs pour les objets qui vous intéressent
-              </Text>
-            </View>
-          </ScrollView>
-        )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
+
+      {/* Modal détail objet */}
+      <Modal visible={!!selectedItem} animationType="slide" presentationStyle="pageSheet">
+        {selectedItem && (
+          <SafeAreaView className="flex-1 bg-white">
+            <View className="p-4 border-b border-gray-200">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-xl font-bold text-gray-800">Détail de l'objet</Text>
+                <TouchableOpacity
+                  onPress={() => setSelectedItem(null)}
+                  className="w-8 h-8 bg-gray-100 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="close" size={20} color="#374151" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <ScrollView className="flex-1 p-4">
+              <Image 
+                source={{ uri: selectedItem.images?.[0] || 'https://via.placeholder.com/400x200' }} 
+                className="w-full h-48 rounded-xl mb-4"
+                resizeMode="cover"
+              />
+              
+              <Text className="text-2xl font-bold text-gray-800 mb-2">
+                {selectedItem.title}
+              </Text>
+              
+              <View className="flex-row items-center mb-4">
+                <Ionicons name="location-outline" size={16} color="#6B7280" />
+                <Text className="text-gray-600 ml-1">
+                  {formatDistance(selectedItem.distance)} • {typeof selectedItem.location === 'object' ? selectedItem.location.city : selectedItem.location}
+                </Text>
+              </View>
+
+              <Text className="text-gray-700 mb-6 text-base leading-6">
+                {selectedItem.description}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.navigate('ItemDetail' as never, { itemId: selectedItem.id } as never);
+                  setSelectedItem(null);
+                }}
+                className="bg-green-500 rounded-xl p-4 flex-row items-center justify-center"
+              >
+                <Ionicons name="eye-outline" size={24} color="white" />
+                <Text className="text-white font-bold text-lg ml-2">Voir les détails</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </SafeAreaView>
+        )}
+      </Modal>
     </SafeAreaView>
   );
 };
