@@ -17,6 +17,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Item } from '../../types/item';
 import Button from '../../components/common/Button';
 import { formatDistanceFromNow, formatDistance } from '../../utils/helpers';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
 type ItemDetailRouteProp = RouteProp<{ ItemDetail: { itemId: string } }, 'ItemDetail'>;
 
@@ -327,6 +328,8 @@ const ItemDetailScreen: React.FC = () => {
           />
         </View>
       )}
+
+      <BottomTabBar currentRoute="Home" />
     </SafeAreaView>
   );
 };

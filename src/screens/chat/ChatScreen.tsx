@@ -3,6 +3,9 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, Image } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useChat } from '../../contexts/ChatContext';
+import { useAuth } from '../../contexts/AuthContext';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
 const ChatScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -123,6 +126,8 @@ const ChatScreen: React.FC = () => {
             </Text>
           </View>
         </View>
+
+        <BottomTabBar currentRoute="ChatList" />
       </SafeAreaView>
     );
   }
@@ -189,6 +194,8 @@ const ChatScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
+
+      <BottomTabBar currentRoute="ChatList" />
     </SafeAreaView>
   );
 };

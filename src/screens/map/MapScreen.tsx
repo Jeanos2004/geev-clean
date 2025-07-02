@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useItems } from '../../contexts/ItemsContext';
 import { CategoryType, Item } from '../../types/item';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
 const { width, height } = Dimensions.get('window');
 
@@ -256,6 +257,8 @@ const MapScreen: React.FC = () => {
           </SafeAreaView>
         )}
       </Modal>
+
+      <BottomTabBar currentRoute="Map" />
     </SafeAreaView>
   );
 };

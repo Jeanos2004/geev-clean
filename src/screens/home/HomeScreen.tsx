@@ -13,14 +13,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { useItems } from '../../contexts/ItemsContext';
 import { CategoryType, Item } from '../../types/item';
-import { HomeStackParamList } from '../../navigation/AppNavigator';
+import { MainStackParamList } from '../../navigation/MainNavigator';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
-type HomeScreenNavigationProp = StackNavigationProp<HomeStackParamList, 'Home'>;
+type HomeScreenNavigationProp = NativeStackNavigationProp<MainStackParamList, 'Home'>;
 
 const { width } = Dimensions.get('window');
 
@@ -124,14 +125,14 @@ export default function HomeScreen() {
               <View className="flex-1">
                 <Text className="text-lg font-bold text-white">
                   Salut {user?.firstName} ! 👋
-                </Text>
+          </Text>
                 <Text className="text-sm text-green-100">
                   Découvrez des objets gratuits près de chez vous
-                </Text>
-              </View>
+          </Text>
+        </View>
             </View>
             <TouchableOpacity 
-              onPress={() => Alert.alert('Profil', 'Accéder au profil')}
+              onPress={() => navigation.navigate('Profile')}
               className="p-2"
             >
               <Ionicons name="person-circle-outline" size={28} color="white" />
@@ -158,19 +159,19 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Stats Geev */}
-        <View className="flex-row justify-around py-6 bg-gray-50">
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-green-600">{items.length}</Text>
-            <Text className="text-sm text-gray-600">Objets disponibles</Text>
-          </View>
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-blue-600">6M</Text>
-            <Text className="text-sm text-gray-600">Geevers</Text>
-          </View>
-          <View className="items-center">
-            <Text className="text-2xl font-bold text-orange-600">341k</Text>
-            <Text className="text-sm text-gray-600">Tonnes CO₂ évitées</Text>
+        {/* Stats Geev - Optimisé mobile */}
+        <View className="flex-row justify-around py-4 bg-gray-50" style={{ paddingHorizontal: width * 0.05 }}>
+          <View className="items-center flex-1">
+            <Text className="text-xl font-bold text-green-600" style={{ fontSize: width * 0.06 }}>{items.length}</Text>
+            <Text className="text-xs text-gray-600 text-center" style={{ fontSize: width * 0.03 }}>Objets disponibles</Text>
+            </View>
+          <View className="items-center flex-1">
+            <Text className="text-xl font-bold text-blue-600" style={{ fontSize: width * 0.06 }}>6M</Text>
+            <Text className="text-xs text-gray-600 text-center" style={{ fontSize: width * 0.03 }}>Geevers</Text>
+            </View>
+          <View className="items-center flex-1">
+            <Text className="text-xl font-bold text-orange-600" style={{ fontSize: width * 0.06 }}>341k</Text>
+            <Text className="text-xs text-gray-600 text-center" style={{ fontSize: width * 0.03 }}>Tonnes CO₂ évitées</Text>
           </View>
         </View>
 
@@ -208,7 +209,7 @@ export default function HomeScreen() {
                   selectedCategory === category.id ? 'text-white' : 'text-gray-700'
                 }`}>
                   {category.label}
-                </Text>
+          </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -217,11 +218,17 @@ export default function HomeScreen() {
         {/* Actions rapides */}
         <View className="px-4 py-2 mb-4">
           <View className="flex-row space-x-3">
-            <TouchableOpacity className="flex-1 bg-green-500 rounded-xl p-4 flex-row items-center justify-center">
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('AddItem')}
+              className="flex-1 bg-green-500 rounded-xl p-4 flex-row items-center justify-center shadow-lg"
+            >
               <Ionicons name="add-circle-outline" size={24} color="white" />
               <Text className="text-white font-semibold ml-2">Donner</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 bg-blue-500 rounded-xl p-4 flex-row items-center justify-center">
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Map')}
+              className="flex-1 bg-blue-500 rounded-xl p-4 flex-row items-center justify-center shadow-lg"
+            >
               <Ionicons name="map-outline" size={24} color="white" />
               <Text className="text-white font-semibold ml-2">Carte</Text>
             </TouchableOpacity>
@@ -249,8 +256,11 @@ export default function HomeScreen() {
                 <TouchableOpacity
                   key={item.id}
                   onPress={() => handleItemPress(item)}
-                  className="w-[48%] bg-white rounded-xl mb-4 shadow-sm"
-                  style={{ elevation: 2 }}
+                  className="bg-white rounded-xl mb-4 shadow-sm"
+                  style={{ 
+                    width: (width - 48) / 2 - 8, // Calcul responsive pour 2 colonnes
+                    elevation: 2 
+                  }}
                 >
                   {/* Image de l'objet */}
                   <View className="relative">
@@ -265,14 +275,14 @@ export default function HomeScreen() {
                     </View>
                     {/* Distance */}
                     <View className="absolute top-2 right-2 bg-black/50 rounded-full px-2 py-1">
-                      <Text className="text-white text-xs">{formatDistance(item.distance)}</Text>
+                      <Text className="text-white text-xs">{formatDistance((item as any).distance)}</Text>
                     </View>
                   </View>
 
                   {/* Informations de l'objet */}
                   <View className="p-3">
                     <Text className="font-semibold text-gray-800 text-sm mb-1" numberOfLines={2}>
-                      {item.title}
+                    {item.title}
                     </Text>
                     <Text className="text-gray-600 text-xs mb-2" numberOfLines={1}>
                       {typeof item.location === 'object' ? item.location.city : item.location}
@@ -301,16 +311,18 @@ export default function HomeScreen() {
             <Ionicons name="leaf-outline" size={48} color="white" />
             <Text className="text-white font-bold text-lg text-center mt-3">
               Ensemble, luttons contre le gaspillage !
-            </Text>
+          </Text>
             <Text className="text-green-100 text-center mt-2 text-sm">
               Chaque objet donné participe à l'économie circulaire et aide la planète 🌍
-            </Text>
+          </Text>
           </View>
         </View>
 
-        {/* Espacement en bas */}
-        <View className="h-6" />
+        {/* Espacement en bas pour la navigation flottante */}
+        <View className="h-20" />
       </ScrollView>
+
+      <BottomTabBar currentRoute="Home" />
     </SafeAreaView>
   );
 } 

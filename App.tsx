@@ -20,7 +20,7 @@ export default function App() {
           <ItemsProvider>
             <ChatProvider>
               <AppNavigator />
-              <StatusBar style="auto" />
+      <StatusBar style="auto" />
             </ChatProvider>
           </ItemsProvider>
         </AuthProvider>

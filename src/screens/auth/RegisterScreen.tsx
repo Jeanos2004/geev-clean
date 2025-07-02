@@ -99,7 +99,7 @@ const RegisterScreen: React.FC = () => {
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
+            {/* Header */}
           <View className="items-center pt-8 pb-6">
             <View className="w-20 h-20 bg-secondary-500 rounded-full items-center justify-center mb-4">
               <Text className="text-white text-3xl">✨</Text>
@@ -109,7 +109,7 @@ const RegisterScreen: React.FC = () => {
             </Text>
             <Text className="text-gray-600 text-center px-8">
               Créez votre compte et commencez à donner et recevoir des objets
-            </Text>
+              </Text>
           </View>
 
           {/* Formulaire d'inscription */}
@@ -155,7 +155,7 @@ const RegisterScreen: React.FC = () => {
                 <TextInput
                   className="bg-gray-50 border border-gray-200 rounded-geev px-4 py-3 text-gray-900"
                   placeholder="votre.email@exemple.com"
-                  value={formData.email}
+                value={formData.email}
                   onChangeText={(value) => handleInputChange('email', value)}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -171,11 +171,11 @@ const RegisterScreen: React.FC = () => {
                 <TextInput
                   className="bg-gray-50 border border-gray-200 rounded-geev px-4 py-3 text-gray-900"
                   placeholder="Minimum 6 caractères"
-                  value={formData.password}
+                value={formData.password}
                   onChangeText={(value) => handleInputChange('password', value)}
                   secureTextEntry
-                />
-              </View>
+              />
+            </View>
 
               {/* Confirmation mot de passe */}
               <View className="mb-6">
@@ -204,7 +204,7 @@ const RegisterScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
 
-              {/* Conditions d'utilisation */}
+            {/* Conditions d'utilisation */}
               <Text className="text-xs text-gray-500 text-center">
                 En créant un compte, vous acceptez nos{' '}
                 <Text className="text-primary-500">Conditions d'utilisation</Text>
@@ -222,13 +222,13 @@ const RegisterScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
+            </View>
 
           {/* Avantages Geev */}
           <View className="bg-gradient-to-r from-primary-50 to-secondary-50 mx-6 rounded-geev p-4 mb-6">
             <Text className="text-gray-800 font-semibold mb-3 text-center">
               🌟 Pourquoi rejoindre Geev ?
-            </Text>
+              </Text>
             <View className="space-y-2">
               <View className="flex-row items-center">
                 <Text className="text-green-500 mr-2">✓</Text>

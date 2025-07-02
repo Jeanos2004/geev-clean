@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useItems } from '../../contexts/ItemsContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Item, CategoryType, ItemCondition, CreateItemData } from '../../types/item';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
 type AddItemRouteProp = RouteProp<{ AddItem: { editItem?: Item } }, 'AddItem'>;
 
@@ -411,6 +412,8 @@ const AddItemScreen: React.FC = () => {
           )}
         </View>
       </ScrollView>
+
+      <BottomTabBar currentRoute="AddItem" />
     </SafeAreaView>
   );
 };

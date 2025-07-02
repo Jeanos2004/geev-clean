@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useChat } from '../../contexts/ChatContext';
 import { useAuth } from '../../contexts/AuthContext';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
 const ChatListScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -246,6 +247,8 @@ const ChatListScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      <BottomTabBar currentRoute="ChatList" />
     </SafeAreaView>
   );
 };

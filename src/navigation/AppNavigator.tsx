@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import AuthNavigator from './AuthNavigator';
-import TabNavigator from './TabNavigator';
+import MainNavigator from './MainNavigator';
 
 /**
  * Navigateur principal de l'application
@@ -21,7 +21,7 @@ const AppNavigator: React.FC = () => {
   }
 
   // Retourne le navigateur approprié selon l'état d'authentification
-  return isAuthenticated ? <TabNavigator /> : <AuthNavigator />;
+  return isAuthenticated ? <MainNavigator /> : <AuthNavigator />;
 };
 
 export default AppNavigator; 

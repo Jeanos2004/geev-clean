@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
+import BottomTabBar from '../../components/common/BottomTabBar';
 
 /**
  * ProfileScreen Geev - Profil utilisateur avec statistiques et impact
@@ -169,9 +170,9 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         {/* Actions */}
-        <View className="px-4 mt-8 mb-8">
+        <View className="px-4 mt-8 mb-24">
           <TouchableOpacity
-            onPress={() => Alert.alert('Paramètres', 'Fonctionnalité en développement')}
+            onPress={() => (navigation as any).navigate('Settings')}
             className="bg-white rounded-xl p-4 mb-3 border border-gray-200 shadow-sm flex-row items-center justify-between"
           >
             <View className="flex-row items-center">
@@ -194,7 +195,7 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         {/* Message final */}
-        <View className="bg-gradient-to-r from-green-500 to-blue-500 mx-4 rounded-xl p-6 mb-8">
+        <View className="bg-gradient-to-r from-green-500 to-blue-500 mx-4 rounded-xl p-6 mb-24">
           <View className="items-center">
             <Ionicons name="heart" size={40} color="white" />
             <Text className="text-white font-bold text-lg text-center mt-3">
@@ -206,6 +207,8 @@ const ProfileScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+
+      <BottomTabBar currentRoute="Profile" />
     </SafeAreaView>
   );
 };
